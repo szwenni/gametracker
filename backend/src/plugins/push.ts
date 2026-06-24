@@ -51,7 +51,7 @@ async function pushPlugin(app: FastifyInstance) {
   const pushService: PushService = {
     async sendToUser(userId, title, body, data) {
       const result = await app.db.query(
-        'SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = $1',
+        'SELECT id, endpoint, keys_p256dh AS p256dh, keys_auth AS auth FROM push_subscriptions WHERE user_id = $1',
         [userId]
       )
       if (result.rows.length > 0) {
@@ -63,7 +63,7 @@ async function pushPlugin(app: FastifyInstance) {
       if (userIds.length === 0) return
       const placeholders = userIds.map((_, i) => `$${i + 1}`).join(', ')
       const result = await app.db.query(
-        `SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (${placeholders})`,
+        `SELECT id, endpoint, keys_p256dh AS p256dh, keys_auth AS auth FROM push_subscriptions WHERE user_id IN (${placeholders})`,
         userIds
       )
       if (result.rows.length > 0) {

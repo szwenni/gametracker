@@ -1,0 +1,18 @@
+{
+  "name": "Spieletracker",
+  "short_name": "Spieletracker",
+  "description": "Punkte und Spiele tracken",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#818CF8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -21,12 +21,12 @@ async function notifyPlugin(app: FastifyInstance) {
       const params: unknown[] = []
       let idx = 1
       for (const uid of userIds) {
-        values.push(`($${idx}, $${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4})`)
-        params.push(uid, title, body, data?.type ?? null, JSON.stringify(data ?? {}))
-        idx += 5
+        values.push(`($${idx}, $${idx + 1}, $${idx + 2}, $${idx + 3})`)
+        params.push(uid, title, body, JSON.stringify(data ?? {}))
+        idx += 4
       }
       await app.db.query(
-        `INSERT INTO notifications (user_id, title, body, type, data) VALUES ${values.join(', ')}`,
+        `INSERT INTO notifications (user_id, title, body, data) VALUES ${values.join(', ')}`,
         params
       )
     } catch (err) {

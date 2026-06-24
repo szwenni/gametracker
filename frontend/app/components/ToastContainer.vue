@@ -22,28 +22,28 @@ const { toasts, remove } = useToast()
 
 function bgClass(type: Toast['type']) {
   switch (type) {
-    case 'success': return 'bg-green-50/95 border-green-200'
-    case 'warning': return 'bg-amber-50/95 border-amber-200'
-    case 'error': return 'bg-red-50/95 border-red-200'
-    default: return 't-primary-soft border-[var(--theme-primary-soft)]'
+    case 'success': return 'bg-green-900/90 border-green-700'
+    case 'warning': return 'bg-amber-900/90 border-amber-700'
+    case 'error': return 'bg-red-900/90 border-red-700'
+    default: return 'bg-slate-800/90 border-slate-600'
   }
 }
 
 function titleClass(type: Toast['type']) {
   switch (type) {
-    case 'success': return 'text-green-800'
-    case 'warning': return 'text-amber-800'
-    case 'error': return 'text-red-800'
-    default: return 't-primary-soft-text'
+    case 'success': return 'text-green-200'
+    case 'warning': return 'text-amber-200'
+    case 'error': return 'text-red-200'
+    default: return 'text-slate-100'
   }
 }
 
 function msgClass(type: Toast['type']) {
   switch (type) {
-    case 'success': return 'text-green-600'
-    case 'warning': return 'text-amber-600'
-    case 'error': return 'text-red-600'
-    default: return 't-primary'
+    case 'success': return 'text-green-300'
+    case 'warning': return 'text-amber-300'
+    case 'error': return 'text-red-300'
+    default: return 'text-slate-300'
   }
 }
 </script>

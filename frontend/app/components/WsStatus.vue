@@ -24,8 +24,8 @@ const visible = computed(() => status.value !== 'connected')
 
 const label = computed(() => {
   switch (status.value) {
-    case 'connecting': return 'Connecting...'
-    case 'reconnecting': return 'Reconnecting...'
+    case 'connecting': return 'Verbinde...'
+    case 'reconnecting': return 'Verbinde neu...'
     case 'disconnected': return 'Offline'
     case 'connected': return 'Live'
     default: return ''

@@ -13,31 +13,48 @@ const REFRESH_COOKIE_OPTIONS = {
 
 export async function authRoutes(app: FastifyInstance) {
 
-  // POST /auth/register
   app.post('/auth/register', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { email, password, displayName } = request.body as {
-      email: string
+    const { inviteToken, username, password, displayName } = request.body as {
+      inviteToken: string
+      username: string
       password: string
       displayName: string
     }
 
-    if (!email || !password || !displayName) {
-      return reply.code(400).send({ error: 'email, password, and displayName are required', statusCode: 400 })
+    if (!inviteToken || !username || !password || !displayName) {
+      return reply.code(400).send({ error: 'inviteToken, username, password und displayName sind erforderlich', statusCode: 400 })
     }
 
-    const existing = await app.db.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()])
+    const invite = await app.db.query(
+      'SELECT id, used_by FROM app_invitations WHERE token = $1',
+      [inviteToken]
+    )
+    if (invite.rowCount === 0) {
+      return reply.code(400).send({ error: 'Ungültiger Einladungslink', statusCode: 400 })
+    }
+    if (invite.rows[0].used_by) {
+      return reply.code(400).send({ error: 'Einladungslink wurde bereits verwendet', statusCode: 400 })
+    }
+
+    const existing = await app.db.query('SELECT id FROM users WHERE username = $1', [username.toLowerCase()])
     if (existing.rowCount && existing.rowCount > 0) {
-      return reply.code(409).send({ error: 'Email already registered', statusCode: 409 })
+      return reply.code(409).send({ error: 'Benutzername bereits vergeben', statusCode: 409 })
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS)
 
     const result = await app.db.query(
-      `INSERT INTO users (email, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id, global_role`,
-      [email.toLowerCase(), displayName, passwordHash]
+      `INSERT INTO users (username, display_name, password_hash) VALUES ($1, $2, $3) RETURNING id, global_role`,
+      [username.toLowerCase(), displayName, passwordHash]
     )
 
     const user = result.rows[0]
+
+    await app.db.query(
+      'UPDATE app_invitations SET used_by = $1, used_at = NOW() WHERE id = $2',
+      [user.id, invite.rows[0].id]
+    )
+
     const tokens = await app.auth.generateTokens(user.id, user.global_role)
 
     reply.setCookie('access_token', tokens.accessToken, REFRESH_COOKIE_OPTIONS)
@@ -46,34 +63,34 @@ export async function authRoutes(app: FastifyInstance) {
     return {
       user: {
         id: user.id,
-        email: email.toLowerCase(),
+        username: username.toLowerCase(),
         displayName,
+        avatarPath: null,
         globalRole: user.global_role
       }
     }
   })
 
-  // POST /auth/login
   app.post('/auth/login', async (request: FastifyRequest, reply: FastifyReply) => {
-    const { email, password } = request.body as { email: string; password: string }
+    const { username, password } = request.body as { username: string; password: string }
 
-    if (!email || !password) {
-      return reply.code(400).send({ error: 'email and password are required', statusCode: 400 })
+    if (!username || !password) {
+      return reply.code(400).send({ error: 'Benutzername und Passwort sind erforderlich', statusCode: 400 })
     }
 
     const result = await app.db.query(
-      'SELECT id, email, display_name, password_hash, global_role FROM users WHERE email = $1',
-      [email.toLowerCase()]
+      'SELECT id, username, display_name, avatar_path, password_hash, global_role FROM users WHERE username = $1',
+      [username.toLowerCase()]
     )
 
     if (result.rowCount === 0) {
-      return reply.code(401).send({ error: 'Invalid credentials', statusCode: 401 })
+      return reply.code(401).send({ error: 'Ungültige Anmeldedaten', statusCode: 401 })
     }
 
     const user = result.rows[0]
     const valid = await bcrypt.compare(password, user.password_hash)
     if (!valid) {
-      return reply.code(401).send({ error: 'Invalid credentials', statusCode: 401 })
+      return reply.code(401).send({ error: 'Ungültige Anmeldedaten', statusCode: 401 })
     }
 
     const tokens = await app.auth.generateTokens(user.id, user.global_role)
@@ -84,14 +101,14 @@ export async function authRoutes(app: FastifyInstance) {
     return {
       user: {
         id: user.id,
-        email: user.email,
+        username: user.username,
         displayName: user.display_name,
+        avatarPath: user.avatar_path,
         globalRole: user.global_role
       }
     }
   })
 
-  // POST /auth/refresh
   app.post('/auth/refresh', async (request: FastifyRequest, reply: FastifyReply) => {
     const refreshToken = request.cookies.refresh_token
     if (!refreshToken) {
@@ -110,7 +127,6 @@ export async function authRoutes(app: FastifyInstance) {
     }
   })
 
-  // POST /auth/logout
   app.post('/auth/logout', async (request: FastifyRequest, reply: FastifyReply) => {
     const refreshToken = request.cookies.refresh_token
     if (refreshToken) {
@@ -123,14 +139,13 @@ export async function authRoutes(app: FastifyInstance) {
     return { success: true }
   })
 
-  // GET /auth/me
   app.get('/auth/me', {
     preHandler: [requireAuth]
   }, async (request: FastifyRequest) => {
     const userId = request.authUser!.userId
 
     const result = await app.db.query(
-      'SELECT id, email, display_name, global_role, created_at, updated_at FROM users WHERE id = $1',
+      'SELECT id, username, display_name, avatar_path, global_role, created_at, updated_at FROM users WHERE id = $1',
       [userId]
     )
 
@@ -142,8 +157,9 @@ export async function authRoutes(app: FastifyInstance) {
     return {
       user: {
         id: u.id,
-        email: u.email,
+        username: u.username,
         displayName: u.display_name,
+        avatarPath: u.avatar_path,
         globalRole: u.global_role,
         createdAt: u.created_at,
         updatedAt: u.updated_at

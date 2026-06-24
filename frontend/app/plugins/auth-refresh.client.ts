@@ -27,25 +27,4 @@ export default defineNuxtPlugin(() => {
 
   if (user.value) startTimer()
   watch(user, (u) => u ? startTimer() : stopTimer())
-
-  const originalFetch = globalThis.$fetch
-  if (originalFetch) {
-    globalThis.$fetch = (async (input: string, opts?: Record<string, unknown>) => {
-      try {
-        return await originalFetch(input, opts as any)
-      } catch (err: unknown) {
-        const status = (err as { status?: number; statusCode?: number })?.status
-          ?? (err as { status?: number; statusCode?: number })?.statusCode
-        if (status === 401 && user.value && !String(input).includes('/auth/')) {
-          const refreshed = await refresh()
-          if (refreshed) {
-            return await originalFetch(input, opts as any)
-          }
-          logout()
-          navigateTo('/login')
-        }
-        throw err
-      }
-    }) as typeof globalThis.$fetch
-  }
 })

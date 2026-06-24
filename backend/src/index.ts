@@ -7,12 +7,16 @@ import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import dbPlugin from './plugins/db.js'
 import authPlugin from './plugins/auth.js'
+import seedPlugin from './plugins/seed.js'
 import wsPlugin from './plugins/ws.js'
 import pushPlugin from './plugins/push.js'
 import notifyPlugin from './plugins/notify.js'
 import { healthRoutes } from './routes/health.js'
 import { authRoutes } from './routes/auth.js'
 import { pushRoutes } from './routes/push.js'
+import { userRoutes } from './routes/users.js'
+import { adminRoutes } from './routes/admin.js'
+import { gameRoutes } from './routes/games.js'
 
 const envToLogger: Record<string, unknown> = {
   development: {
@@ -52,9 +56,10 @@ async function start() {
     keyGenerator: (request) => request.ip
   })
 
-  // Core plugins (order matters: db → auth → push → ws → notify)
+  // Core plugins (order matters: db → auth → seed → push → ws → notify)
   await app.register(dbPlugin)
   await app.register(authPlugin)
+  await app.register(seedPlugin)
   await app.register(pushPlugin)
   await app.register(wsPlugin)
   await app.register(notifyPlugin)
@@ -62,6 +67,9 @@ async function start() {
   // Routes
   await app.register(healthRoutes, { prefix: '/api/v1' })
   await app.register(authRoutes, { prefix: '/api/v1' })
+  await app.register(userRoutes, { prefix: '/api/v1' })
+  await app.register(adminRoutes, { prefix: '/api/v1' })
+  await app.register(gameRoutes, { prefix: '/api/v1' })
   await app.register(pushRoutes, { prefix: '/api/v1' })
 
   // Serve static files (uploads, etc.)

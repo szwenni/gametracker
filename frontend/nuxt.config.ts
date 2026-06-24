@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     scope: '/',
-    manifest: false,
+    manifest: '/manifest.json',
     workbox: {
       navigateFallback: undefined,
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],

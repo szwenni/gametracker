@@ -17,9 +17,9 @@ export async function pushRoutes(app: FastifyInstance) {
     const userId = request.authUser!.userId
 
     await app.db.query(
-      `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
+      `INSERT INTO push_subscriptions (user_id, endpoint, keys_p256dh, keys_auth)
        VALUES ($1, $2, $3, $4)
-       ON CONFLICT (user_id, endpoint) DO UPDATE SET p256dh = $3, auth = $4`,
+       ON CONFLICT (user_id, endpoint) DO UPDATE SET keys_p256dh = $3, keys_auth = $4`,
       [userId, endpoint, keys.p256dh, keys.auth]
     )
 
