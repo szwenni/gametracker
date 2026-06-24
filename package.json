@@ -1,0 +1,16 @@
+{
+  "name": "game-tracker",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n fe,be -c blue,green \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:infra": "docker compose -f deployment/docker-compose.yml up -d",
+    "dev:infra:down": "docker compose -f deployment/docker-compose.yml down",
+    "db:reset": "docker compose -f deployment/docker-compose.yml down -v && docker compose -f deployment/docker-compose.yml up -d postgres",
+    "install:all": "npm install --prefix frontend && npm install --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

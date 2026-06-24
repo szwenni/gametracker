@@ -1,0 +1,18 @@
+node_modules/
+.nuxt/
+.output/
+dist/
+.env
+*.log
+.DS_Store
+
+# Deployment
+deployment/nginx/ssl/*.pem
+deployment/nginx/ssl/live/
+deployment/nginx/certs/
+deployment/certbot/credentials.ini
+deployment/backups/
+backend/public/uploads/*
+backend/public/gallery/*
+!backend/public/uploads/.gitkeep
+!backend/public/gallery/.gitkeep

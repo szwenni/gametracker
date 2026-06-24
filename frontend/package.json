@@ -1,0 +1,16 @@
+{
+  "name": "game-tracker-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --port 3000",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@vite-pwa/nuxt": "^1.1.1",
+    "nuxt": "^4.3.1"
+  }
+}

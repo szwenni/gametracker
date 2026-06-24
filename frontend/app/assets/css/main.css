@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  overscroll-behavior-y: none;
+}
+
+/* --- Themed global utilities --- */
+
+.field-input {
+  @apply w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-colors;
+  background-color: var(--theme-surface, #fff);
+  border: 1px solid var(--theme-border, #e5e7eb);
+  color: var(--theme-text, #111827);
+  --tw-ring-color: var(--theme-primary, #3B82F6);
+}
+
+.btn-primary {
+  @apply text-sm font-medium px-4 py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--theme-primary, #3B82F6);
+  color: var(--theme-text-on-primary, #fff);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--theme-primary-hover, #2563EB);
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+.btn-secondary {
+  @apply text-sm font-medium px-4 py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--theme-surface, #fff);
+  border: 1px solid var(--theme-border, #e5e7eb);
+  color: var(--theme-text, #374151);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--theme-surface-alt, #f9fafb);
+}
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+}
+
+.btn-danger {
+  @apply text-sm font-medium px-4 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50;
+}
+.btn-danger:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+/* --- Glass treatment for modern templates --- */
+
+[data-theme="modern"] .field-input,
+[data-theme="modern-dark"] .field-input {
+  background: var(--theme-glass-bg);
+  border-color: var(--theme-glass-border);
+  backdrop-filter: var(--theme-glass-blur);
+  -webkit-backdrop-filter: var(--theme-glass-blur);
+}
+
+[data-theme="modern"] .btn-secondary,
+[data-theme="modern-dark"] .btn-secondary {
+  background: var(--theme-glass-bg);
+  border-color: var(--theme-glass-border);
+  backdrop-filter: var(--theme-glass-blur);
+  -webkit-backdrop-filter: var(--theme-glass-blur);
+}
+
+[data-theme="modern"] .card,
+[data-theme="modern-dark"] .card {
+  background: var(--theme-glass-bg);
+  border-color: var(--theme-glass-border);
+  backdrop-filter: var(--theme-glass-blur);
+  -webkit-backdrop-filter: var(--theme-glass-blur);
+}
+
+[data-theme="modern"] .t-surface,
+[data-theme="modern-dark"] .t-surface {
+  background: var(--theme-glass-bg) !important;
+  border-color: var(--theme-glass-border) !important;
+  backdrop-filter: var(--theme-glass-blur);
+  -webkit-backdrop-filter: var(--theme-glass-blur);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+    0 2px 16px rgba(0, 0, 0, 0.04);
+}
+[data-theme="modern-dark"] .t-surface {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    0 2px 20px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="modern"] .t-surface-alt,
+[data-theme="modern-dark"] .t-surface-alt {
+  background: var(--theme-surface-alt) !important;
+}
+
+[data-theme="modern"] .t-primary-soft,
+[data-theme="modern-dark"] .t-primary-soft {
+  backdrop-filter: var(--theme-glass-blur);
+  -webkit-backdrop-filter: var(--theme-glass-blur);
+}
+
+/* --- Theme-aware utility helpers --- */
+
+@layer utilities {
+  .t-surface {
+    background-color: var(--theme-surface, #fff);
+  }
+
+  .t-surface-alt {
+    background-color: var(--theme-surface-alt, #f9fafb);
+  }
+
+  .t-border {
+    border-color: var(--theme-border, #e5e7eb);
+  }
+
+  .t-text {
+    color: var(--theme-text, #111827);
+  }
+
+  .t-text-muted {
+    color: var(--theme-text-muted, #6b7280);
+  }
+
+  .t-primary {
+    color: var(--theme-primary, #3B82F6);
+  }
+
+  .t-primary-bg {
+    background-color: var(--theme-primary, #3B82F6);
+  }
+
+  .t-primary-soft {
+    background-color: var(--theme-primary-soft, #eff6ff);
+  }
+
+  .t-primary-soft-text {
+    color: var(--theme-primary-text, #1e40af);
+  }
+
+  .t-primary-soft-border {
+    border-color: var(--theme-primary-soft, #eff6ff);
+  }
+}

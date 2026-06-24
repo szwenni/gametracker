@@ -1,0 +1,14 @@
+**/node_modules
+**/.nuxt
+**/.output
+**/dist
+**/.git
+**/.DS_Store
+**/*.log
+.cursor
+.env
+deployment/backups
+deployment/nginx/ssl/*.pem
+deployment/nginx/ssl/live
+backend/public/uploads
+backend/public/gallery

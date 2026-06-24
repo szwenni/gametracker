@@ -1,0 +1,20 @@
+---
+alwaysApply: true
+---
+
+# General
+
+1. We use strong typing with typescript everywhere.
+2. Try to utilize the given libraries as much as possible. Tailwind CSS is our only UI framework — all components are hand-built with Tailwind utility classes.
+3. Before iplementing something new or making breaking changes to interfaces/models think of if it is really needed and if yes update the interface everywhere
+4. write md instructions only if really needed the code should be speaking for itself
+5. all UIs towards the end user have to be as easy as possbile UX wise without hiding any features
+6. write tests if needed, but dont invent stupid things.
+
+# Nuxt
+
+We are using Nuxt 4. Nuxt autoimports everything it provides also from vue so we dont need to do imports for those things. We are developing a module think on that always. Use the best practices outlined on the nuxt module developers guide. The module has to be as SSR friendly as possbile. If states are needed anywhere we wont use pinia instead we will use the builtin state mechanism.
+
+# Tailwind
+
+We use Tailwind CSS as our sole styling solution via @nuxtjs/tailwindcss. No component library (no PrimeVue, no Headless UI, etc.) — all UI components are custom-built with Tailwind utility classes.
