@@ -1,3 +1,4 @@
+name: game-tracker-infra
 services:
   postgres:
     image: postgres:16-alpine
@@ -21,8 +22,8 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "3555:3555"
+      - "81:80"
+      - "3556:3555"
     volumes:
       - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro

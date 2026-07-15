@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      HOST: "0.0.0.0"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+    volumes:
+      - uploads:/app/backend/public/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gametracker-api.rule=Host(`${APP_DOMAIN}`) && (PathPrefix(`/api`) || PathPrefix(`/ws`) || PathPrefix(`/uploads`))
+      - traefik.http.routers.gametracker-api.entrypoints=websecure
+      - traefik.http.routers.gametracker-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.gametracker-api.priority=20
+      - traefik.http.routers.gametracker-api.middlewares=security-headers@docker,api-ratelimit@docker
+      - traefik.http.services.gametracker-api.loadbalancer.server.port=3001
+    networks:
+      - internal
+      - proxy
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NUXT_BACKEND_URL: http://backend:3001
+      NUXT_PUBLIC_APP_NAME: ${APP_NAME:-My App}
+      NUXT_PUBLIC_APP_DOMAIN: ${APP_DOMAIN:-YOUR_DOMAIN}
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gametracker-web.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.gametracker-web.entrypoints=websecure
+      - traefik.http.routers.gametracker-web.tls.certresolver=letsencrypt
+      - traefik.http.routers.gametracker-web.priority=10
+      - traefik.http.routers.gametracker-web.middlewares=security-headers@docker,gzip-compress@docker,web-ratelimit@docker
+      - traefik.http.services.gametracker-web.loadbalancer.server.port=3000
+      # Shared middlewares (defined once, used by both routers)
+      - traefik.http.middlewares.security-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.security-headers.headers.frameDeny=true
+      - traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin
+      - traefik.http.middlewares.gzip-compress.compress=true
+      - traefik.http.middlewares.api-ratelimit.ratelimit.average=100
+      - traefik.http.middlewares.api-ratelimit.ratelimit.burst=50
+      - traefik.http.middlewares.api-ratelimit.ratelimit.period=1s
+      - traefik.http.middlewares.web-ratelimit.ratelimit.average=100
+      - traefik.http.middlewares.web-ratelimit.ratelimit.burst=50
+      - traefik.http.middlewares.web-ratelimit.ratelimit.period=1s
+    networks:
+      - internal
+      - proxy
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  internal:
+    driver: bridge
+  proxy:
+    external: true

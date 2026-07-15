@@ -51,7 +51,7 @@ export async function userRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'Ungültiges Dateiformat. Erlaubt: jpg, png, webp, gif', statusCode: 400 })
     }
 
-    const avatarDir = join(process.cwd(), 'public', 'avatars')
+    const avatarDir = join(process.cwd(), 'public', 'uploads', 'avatars')
     await mkdir(avatarDir, { recursive: true })
 
     const filename = `${userId}-${crypto.randomBytes(4).toString('hex')}.${ext}`
@@ -59,7 +59,7 @@ export async function userRoutes(app: FastifyInstance) {
     const buffer = await data.toBuffer()
     await writeFile(filepath, buffer)
 
-    const avatarPath = `/avatars/${filename}`
+    const avatarPath = `/uploads/avatars/${filename}`
 
     const result = await app.db.query(
       `UPDATE users SET avatar_path = $1 WHERE id = $2 RETURNING id, username, display_name, avatar_path, global_role, created_at, updated_at`,

@@ -6,16 +6,23 @@
 
     <template v-else-if="state">
       <!-- Header -->
-      <div class="flex items-center justify-between mb-5">
-        <div class="min-w-0">
-          <h1 class="text-lg font-bold t-text truncate">{{ state.game.name }}</h1>
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2 min-w-0">
+          <NuxtLink to="/" class="shrink-0 p-1 rounded-lg transition-colors hover:opacity-80" style="color: var(--theme-text-muted)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </NuxtLink>
+          <div class="min-w-0">
+            <h1 class="text-lg font-bold t-text truncate">{{ state.game.name }}</h1>
           <p class="text-xs t-text-muted">
-            {{ state.game.type === 'phase10' ? 'Phase 10' : 'Allgemein' }} · {{ state.players.length }} Spieler
+            {{ state.game.type === 'phase10' ? 'Phase 10' : 'Allgemein' }}
             <span v-if="state.game.status === 'ended'" class="text-yellow-400 font-medium"> · Beendet</span>
           </p>
+          </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <NuxtLink v-if="isCreator" :to="`/game/${gameId}/invite`" class="btn-secondary text-xs px-3 py-2">
+          <NuxtLink v-if="isCreator && state.game.status === 'active'" :to="`/game/${gameId}/invite`" class="btn-secondary text-xs px-3 py-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
             </svg>
@@ -26,6 +33,27 @@
         </div>
       </div>
 
+      <!-- Players -->
+      <div class="flex items-center gap-1.5 mb-5 flex-wrap">
+        <div
+          v-for="player in state.players"
+          :key="player.id"
+          class="flex items-center gap-1.5 rounded-full pl-1 pr-2.5 py-1"
+          :class="player.joined ? 'bg-white/5' : 'bg-white/[0.02] border border-dashed t-border'"
+        >
+          <img
+            v-if="player.avatarPath"
+            :src="player.avatarPath"
+            :alt="player.displayName"
+            class="w-5 h-5 rounded-full object-cover"
+          >
+          <div v-else class="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] font-bold t-text">
+            {{ player.displayName.charAt(0).toUpperCase() }}
+          </div>
+          <span class="text-xs t-text" :class="{ 'opacity-50': !player.joined }">{{ player.displayName }}</span>
+        </div>
+      </div>
+
       <!-- Phase 10 grid -->
       <div v-if="state.game.type === 'phase10'" class="mb-5">
         <h2 class="text-xs font-bold t-text-muted uppercase tracking-wide mb-2">Phasen</h2>
@@ -33,7 +61,7 @@
           :players="state.players"
           :phases="state.phases"
           :is-creator="isCreator"
-          :current-user-id="user!.id"
+          :current-player-id="currentPlayerId"
           @phase-toggle="handlePhaseToggle"
         />
       </div>
@@ -46,7 +74,7 @@
           :rounds="state.rounds"
           :scores="state.scores"
           :is-creator="isCreator"
-          :current-user-id="user!.id"
+          :current-player-id="currentPlayerId"
           @score-change="handleScoreChange"
         />
       </div>
@@ -69,7 +97,7 @@
         <div class="t-surface border t-border rounded-xl divide-y" style="border-color: var(--theme-border)">
           <div
             v-for="(entry, idx) in ranking"
-            :key="entry.userId"
+            :key="entry.id"
             class="flex items-center gap-3 px-4 py-3"
           >
             <span class="text-sm font-bold t-text-muted w-5">{{ idx + 1 }}</span>
@@ -97,12 +125,18 @@ const { add: addToast } = useToast()
 
 const isCreator = computed(() => state.value?.game.createdBy === user.value?.id)
 
+const currentPlayerId = computed(() => {
+  if (!state.value || !user.value) return null
+  const slot = state.value.players.find(p => p.userId === user.value!.id)
+  return slot?.id ?? null
+})
+
 const ranking = computed(() => {
   if (!state.value || state.value.game.type !== 'phase10') return []
 
   return state.value.players.map(player => {
-    const completedPhases = state.value!.phases.filter(p => p.userId === player.userId && p.completed).length
-    const totalScore = state.value!.scores.filter(s => s.userId === player.userId).reduce((sum, s) => sum + s.score, 0)
+    const completedPhases = state.value!.phases.filter(p => p.playerId === player.id && p.completed).length
+    const totalScore = state.value!.scores.filter(s => s.playerId === player.id).reduce((sum, s) => sum + s.score, 0)
     return { ...player, completedPhases, totalScore }
   }).sort((a, b) => {
     if (b.completedPhases !== a.completedPhases) return b.completedPhases - a.completedPhases
@@ -147,17 +181,17 @@ async function handleAddRound() {
   }
 }
 
-async function handleScoreChange(roundId: string, userId: string, score: number) {
+async function handleScoreChange(roundId: string, playerId: string, score: number) {
   try {
-    await saveScores(roundId, [{ userId, score }])
+    await saveScores(roundId, [{ playerId, score }])
   } catch {
     addToast({ title: 'Fehler', message: 'Score konnte nicht gespeichert werden', type: 'error' })
   }
 }
 
-async function handlePhaseToggle(userId: string, phaseNumber: number, completed: boolean) {
+async function handlePhaseToggle(playerId: string, phaseNumber: number, completed: boolean) {
   try {
-    await updatePhase(userId, phaseNumber, completed)
+    await updatePhase(playerId, phaseNumber, completed)
   } catch {
     addToast({ title: 'Fehler', message: 'Phase konnte nicht aktualisiert werden', type: 'error' })
   }

@@ -50,7 +50,7 @@ export function useWebSocket() {
     const hostname = window.location.hostname
     const port = window.location.port
 
-    const proxyPorts = ['80', '443', '3555']
+    const proxyPorts = ['80', '443', '3555', '3556']
     if (port && !proxyPorts.includes(port)) {
       return `${proto}//${hostname}:3001/ws`
     }

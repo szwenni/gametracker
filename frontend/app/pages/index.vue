@@ -79,12 +79,8 @@
       </button>
       <form v-else class="t-surface border t-border rounded-xl p-4 space-y-3" @submit.prevent="handleJoin">
         <div>
-          <label class="block text-xs font-medium t-text-muted mb-1">Spiel-ID</label>
-          <input v-model="joinGameId" type="text" class="field-input" placeholder="Spiel-ID einfügen">
-        </div>
-        <div>
           <label class="block text-xs font-medium t-text-muted mb-1">Einladungscode</label>
-          <input v-model="joinCode" type="text" class="field-input uppercase" placeholder="z.B. A1B2C3">
+          <input v-model="joinCode" type="text" class="field-input uppercase tracking-widest text-center font-mono" placeholder="z.B. A1B2C3D4">
         </div>
         <p v-if="joinError" class="text-xs text-red-400">{{ joinError }}</p>
         <div class="flex gap-2">
@@ -119,7 +115,6 @@ const activeGames = computed(() => games.value.filter((g: any) => g.status === '
 const endedGames = computed(() => games.value.filter((g: any) => g.status === 'ended'))
 
 const showJoin = ref(false)
-const joinGameId = ref('')
 const joinCode = ref('')
 const joinError = ref('')
 const joining = ref(false)
@@ -128,16 +123,14 @@ async function handleJoin() {
   joinError.value = ''
   joining.value = true
   try {
-    await $fetch(`/api/v1/games/${joinGameId.value}/join`, {
+    const result = await $fetch<{ success: boolean; gameId: string }>('/api/v1/games/join', {
       method: 'POST',
       body: { code: joinCode.value },
       credentials: 'include'
     })
     showJoin.value = false
-    joinGameId.value = ''
     joinCode.value = ''
-    await refreshGames()
-    addToast({ title: 'Beigetreten!', message: 'Du bist dem Spiel beigetreten', type: 'success' })
+    navigateTo(`/game/${result.gameId}`)
   } catch (e: any) {
     joinError.value = e?.data?.error ?? 'Beitreten fehlgeschlagen'
   } finally {

@@ -52,18 +52,23 @@ CREATE TABLE games (
 CREATE INDEX idx_games_status ON games(status);
 CREATE INDEX idx_games_created_by ON games(created_by);
 
--- Game players
+-- Game players (slots: user_id is null until a real user joins)
 CREATE TABLE game_players (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (game_id, user_id)
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  display_name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_game_players_game ON game_players(game_id);
+CREATE INDEX idx_game_players_user ON game_players(user_id);
 
 -- Game invitations (game creator invites existing users)
 CREATE TABLE game_invitations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  player_id UUID NOT NULL REFERENCES game_players(id) ON DELETE CASCADE,
   code VARCHAR(10) UNIQUE NOT NULL,
   created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -87,21 +92,20 @@ CREATE INDEX idx_game_rounds_game ON game_rounds(game_id);
 CREATE TABLE game_scores (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   round_id UUID NOT NULL REFERENCES game_rounds(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  player_id UUID NOT NULL REFERENCES game_players(id) ON DELETE CASCADE,
   score INT NOT NULL DEFAULT 0,
-  UNIQUE(round_id, user_id)
+  UNIQUE(round_id, player_id)
 );
 
 CREATE INDEX idx_game_scores_round ON game_scores(round_id);
 
 -- Phase 10 phase tracking
 CREATE TABLE phase10_phases (
-  game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  player_id UUID NOT NULL REFERENCES game_players(id) ON DELETE CASCADE,
   phase_number INT NOT NULL CHECK (phase_number >= 1 AND phase_number <= 10),
   completed BOOLEAN NOT NULL DEFAULT FALSE,
   completed_in_round_id UUID REFERENCES game_rounds(id) ON DELETE SET NULL,
-  PRIMARY KEY (game_id, user_id, phase_number)
+  PRIMARY KEY (player_id, phase_number)
 );
 
 -- Push subscriptions

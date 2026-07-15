@@ -12,10 +12,11 @@ export interface Game {
 }
 
 export interface GamePlayer {
-  userId: string
-  username: string
+  id: string
+  userId: string | null
   displayName: string
   avatarPath: string | null
+  joined: boolean
 }
 
 export interface GameRound {
@@ -27,12 +28,12 @@ export interface GameRound {
 export interface GameScore {
   id: string
   roundId: string
-  userId: string
+  playerId: string
   score: number
 }
 
 export interface Phase10Phase {
-  userId: string
+  playerId: string
   phaseNumber: number
   completed: boolean
   completedInRoundId: string | null
@@ -50,6 +51,7 @@ export interface GameInvitation {
   id: string
   gameId: string
   code: string
+  label: string | null
   createdBy: string
   createdAt: string
 }

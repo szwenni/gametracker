@@ -38,7 +38,7 @@ async function start() {
   // CORS — replace YOUR_DOMAIN with your actual domain
   await app.register(cors, {
     origin: (origin, cb) => {
-      if (!origin || origin.includes('localhost') || origin.includes('YOUR_DOMAIN')) {
+      if (!origin || origin.includes('localhost') || origin.includes('gametracker.kropro.cloud')) {
         cb(null, true)
       } else {
         cb(new Error('Not allowed by CORS: ' + origin), false)
@@ -79,7 +79,7 @@ async function start() {
     decorateReply: true
   })
 
-  const port = parseInt(process.env.PORT ?? '3001', 10)
+  const port = parseInt(process.env.PORT ?? '3101', 10)
   const host = process.env.HOST ?? '0.0.0.0'
 
   await app.listen({ port, host })

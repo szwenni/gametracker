@@ -25,7 +25,7 @@ export function useGame(gameId: string) {
     })
   }
 
-  async function saveScores(roundId: string, scores: Array<{ userId: string; score: number }>) {
+  async function saveScores(roundId: string, scores: Array<{ playerId: string; score: number }>) {
     await $fetch(`/api/v1/games/${gameId}/rounds/${roundId}/scores`, {
       method: 'PUT',
       body: { scores },
@@ -33,10 +33,10 @@ export function useGame(gameId: string) {
     })
   }
 
-  async function updatePhase(userId: string, phaseNumber: number, completed: boolean, roundId?: string) {
+  async function updatePhase(playerId: string, phaseNumber: number, completed: boolean, roundId?: string) {
     await $fetch(`/api/v1/games/${gameId}/phases`, {
       method: 'PUT',
-      body: { userId, phaseNumber, completed, roundId },
+      body: { playerId, phaseNumber, completed, roundId },
       credentials: 'include'
     })
   }
