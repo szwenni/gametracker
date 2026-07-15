@@ -30,6 +30,8 @@ const envToLogger: Record<string, unknown> = {
 
 const env = process.env.NODE_ENV ?? 'development'
 
+const domain = process.env.APP_DOMAIN ?? 'gametracker.kropro.cloud';
+
 async function start() {
   const app = Fastify({
     logger: envToLogger[env] ?? true
@@ -38,7 +40,7 @@ async function start() {
   // CORS — replace YOUR_DOMAIN with your actual domain
   await app.register(cors, {
     origin: (origin, cb) => {
-      if (!origin || origin.includes('localhost') || origin.includes('gametracker.kropro.cloud')) {
+      if (!origin || origin.includes('localhost') || origin.includes('gametracker.kropro.cloud') || origin.includes(domain)) {
         cb(null, true)
       } else {
         cb(new Error('Not allowed by CORS: ' + origin), false)
