@@ -43,6 +43,7 @@ async function start() {
       if (!origin || origin.includes('localhost') || origin.includes('gametracker.kropro.cloud') || origin.includes(domain)) {
         cb(null, true)
       } else {
+        console.log('Allowed domains: ' + domain);
         cb(new Error('Not allowed by CORS: ' + origin), false)
       }
     },
